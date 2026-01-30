@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+
+<title>Joyce Wall Messenger</title>
+
+<style>
+:root{
+  --red:#ff1b2d;
+  --bg:#0b0b12;
+  --panel:rgba(255,255,255,.06);
+  --muted:#9fa3c7;
+}
+
+/* ---------------- BODY ---------------- */
+
+body{
+  margin:0;
+  font-family:system-ui;
+  background:#0b0b12;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  color:white;
+  padding:20px;
+}
+
+/* ---------------- PARTICLES ---------------- */
+
+#particles{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.68;
+  mix-blend-mode:screen;
+}
+
+/* subtiler Horror-Flacker */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,27,45,0.08), transparent 60%);
+  animation: flicker 6s infinite steps(1,end);
+}
+
+@keyframes flicker{
+  0%,100%{opacity:.45}
+  7%{opacity:.6}
+  9%{opacity:.35}
+  22%{opacity:.58}
+  44%{opacity:.4}
+  70%{opacity:.55}
+}
+
+/* ---------------- CARD ---------------- */
+
+.card{
+  position:relative;
+  z-index:2;
+  width:min(980px,100%);
+  background:var(--panel);
+  padding:28px;
+  border-radius:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.7);
+}
+
+h1{
+  font-family:'Creepster';
+  text-align:center;
+  font-size:64px;
+  margin:0 0 20px;
+  color:var(--red);
+  text-shadow:0 0 30px var(--red);
+}
+
+/* ---------------- STRAND ---------------- */
+
+.strand{
+  display:grid;
+  grid-template-columns:repeat(13,1fr);
+  gap:12px 10px;
+  margin-bottom:20px;
+}
+
+.bulb{
+  position:relative;
+  height:78px;
+  display:flex;
+  justify-content:center;
+  transform:translateY(var(--drop));
+}
+
+/* wire */
+.bulb .wire{
+  position:absolute;
+  width:2px;
+  background:#333;
+  top:-20px;
+}
+
+/* base */
+.bulb .base{
+  width:14px;
+  height:10px;
+  background:#555;
+  border-radius:2px;
+}
+
+/* glass cone */
+.bulb .glass{
+  position:absolute;
+  top:10px;
+  width:26px;
+  height:40px;
+  clip-path:polygon(38% 0%,62% 0%,80% 25%,90% 60%,60% 100%,40% 100%,10% 60%,20% 25%);
+  background:#222;
+  transition:.15s;
+}
+
+/* colors */
+.bulb[data-color="red"]{--glow:#ff5555}
+.bulb[data-color="green"]{--glow:#55ff99}
+.bulb[data-color="blue"]{--glow:#66bbff}
+.bulb[data-color="yellow"]{--glow:#ffe97a}
+
+.bulb.on .glass{
+  background:var(--glow);
+  box-shadow:0 0 12px var(--glow),0 0 28px var(--glow);
+}
+
+/* ---------------- INPUTS ---------------- */
+
+input{
+  width:100%;
+  padding:14px;
+  background:#111;
+  border:1px solid #333;
+  border-radius:12px;
+  color:white;
+  font-size:18px;
+  margin-bottom:10px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  background:var(--red);
+  border:none;
+  border-radius:12px;
+  color:white;
+  font-weight:bold;
+}
+
+.history{
+  margin-top:12px;
+  background:#111;
+  padding:10px;
+  border-radius:12px;
+  font-size:13px;
+}
+
+/* ---------------- INTRO ---------------- */
+
+.intro{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  transition:.7s;
+}
+.intro.hidden{opacity:0;pointer-events:none}
+
+.intro-title{
+  font-family:'Creepster';
+  font-size:90px;
+  color:var(--red);
+  text-shadow:0 0 40px var(--red);
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="particles"></canvas>
+
+<div id="intro" class="intro">
+  <div class="intro-title">JOYCE WALL</div>
+</div>
+
+<div class="card">
+<h1>Joyce Wall</h1>
+
+<div id="strand" class="strand"></div>
+
+<input id="msg" placeholder="HELLO WORLD" maxlength="26"/>
+<button id="send">Send Message</button>
+
+<div id="history" class="history"></div>
+</div>
+
+<script>
+const WEBHOOK_URL="https://eoipntgq6ax4882.m.pipedream.net/";
+const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const colors=["red","green","blue","yellow"];
+const strand=document.getElementById("strand");
+const historyBox=document.getElementById("history");
+
+const bulbs={};
+
+letters.forEach((l,i)=>{
+  const b=document.createElement("div");
+  b.className="bulb";
+  b.dataset.color=colors[i%4];
+
+  const drop=Math.sin((i%13)/12*Math.PI)*14+(i>=13?10:0);
+  b.style.setProperty("--drop",drop+"px");
+
+  const wire=document.createElement("div");
+  wire.className="wire";
+  wire.style.height=(20+drop)+"px";
+
+  const base=document.createElement("div");
+  base.className="base";
+
+  const glass=document.createElement("div");
+  glass.className="glass";
+
+  b.append(wire,base,glass);
+  strand.appendChild(b);
+  bulbs[l]=b;
+});
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function animate(text){
+  Object.values(bulbs).forEach(b=>b.classList.remove("on"));
+
+  for(let i=0;i<2;i++){
+    Object.values(bulbs).forEach(b=>b.classList.add("on"));
+    await sleep(200);
+    Object.values(bulbs).forEach(b=>b.classList.remove("on"));
+    await sleep(200);
+  }
+
+  for(const c of text){
+    if(c===" "){await sleep(700);continue;}
+    bulbs[c]?.classList.add("on");
+    await sleep(500);
+    bulbs[c]?.classList.remove("on");
+    await sleep(250);
+  }
+}
+
+document.getElementById("send").onclick=()=>{
+  const text=document.getElementById("msg").value.toUpperCase().replace(/[^A-Z ]/g,"");
+  animate(text);
+  fetch(WEBHOOK_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text})});
+  historyBox.innerHTML="<div>• "+text+"</div>"+historyBox.innerHTML;
+  document.getElementById("msg").value="";
+};
+
+/* ---------- ASH PARTICLES ---------- */
+
+const c=document.getElementById("particles");
+const ctx=c.getContext("2d");
+let W,H,parts=[];
+
+function resize(){
+  W=innerWidth;H=innerHeight;
+  c.width=W;c.height=H;
+  parts=Array.from({length:200},()=>({
+    x:Math.random()*W,
+    y:Math.random()*H,
+    len:2+Math.random()*8,
+    vy:.3+Math.random()*.6,
+    vx:-.3+Math.random()*.6
+  }));
+}
+
+function loop(){
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle="rgba(220,230,240,.25)";
+  ctx.lineCap="round";
+
+  for(const p of parts){
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y);
+    ctx.lineTo(p.x,p.y+p.len);
+    ctx.stroke();
+
+    p.x+=p.vx;
+    p.y+=p.vy;
+    if(p.y>H){p.y=-10;p.x=Math.random()*W;}
+  }
+  requestAnimationFrame(loop);
+}
+
+resize();
+window.onresize=resize;
+loop();
+
+/* intro */
+setTimeout(()=>intro.classList.add("hidden"),1800);
+</script>
+
+</body>
+</html>
