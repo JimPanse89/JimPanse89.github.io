@@ -11,8 +11,9 @@
 <style>
 :root{
   --red:#ff1b2d;
-  --warm:#ffe9a6;
   --bg:#0b0b12;
+  --panel:rgba(255,255,255,.06);
+  --muted:#9fa3c7;
 }
 
 body{
@@ -29,23 +30,19 @@ body{
   padding:20px;
 }
 
-/* ---------- CARD ---------- */
-
 .card{
-  width:min(880px,100%);
-  background:rgba(255,255,255,.06);
+  width:min(920px,100%);
+  background:var(--panel);
   padding:28px;
   border-radius:18px;
   box-shadow:0 20px 60px rgba(0,0,0,.6);
 }
 
-/* ---------- TITLE ---------- */
-
 h1{
   font-family:'Creepster';
   text-align:center;
   font-size:60px;
-  margin:0 0 20px;
+  margin:0 0 18px;
   color:var(--red);
   text-shadow:
     0 0 10px rgba(255,27,45,.9),
@@ -53,85 +50,145 @@ h1{
     0 0 70px rgba(255,27,45,.4);
 }
 
-/* ---------- STRAND ---------- */
+/* ---------- STRAND (hängend) ---------- */
 
 .strand-wrap{
   position:relative;
-  padding-top:24px;
-  margin-bottom:20px;
+  padding:20px 8px 6px;
+  margin: 6px 0 18px;
+  border-radius:14px;
+  background:#111;
+  overflow:hidden;
 }
 
-/* Kabel */
-.strand-wrap::before{
-  content:"";
+/* "Kabel" als wavy Linie: wir simulieren das mit zwei Schatten-Layern */
+.cable{
   position:absolute;
-  top:14px;
-  left:0;
-  right:0;
-  height:4px;
-  background:#222;
-  border-radius:4px;
+  left:-20px;
+  right:-20px;
+  top:18px;
+  height:70px;
+  pointer-events:none;
+  opacity:.9;
+}
+.cable svg{ width:100%; height:100%; display:block; }
+.cable path{
+  stroke:#2a2a2a;
+  stroke-width:5;
+  fill:none;
+  stroke-linecap:round;
+}
+.cable path.shadow{
+  stroke:#0a0a0a;
+  stroke-width:9;
+  opacity:.6;
+  filter: blur(0.2px);
 }
 
+/* Grid für 26 Lampen */
 .strand{
+  position:relative;
   display:grid;
-  grid-template-columns:repeat(13,1fr);
-  gap:10px;
+  grid-template-columns:repeat(13, 1fr);
+  gap: 10px 10px;
+  padding-top: 34px; /* Platz für Kabel */
 }
 
-/* echte Birne */
+/* Lampen-Halter */
 .bulb{
   position:relative;
   width:100%;
-  height:48px;
+  height:62px;
   display:flex;
-  justify-content:center;
   align-items:flex-start;
+  justify-content:center;
+  transform: translateY(var(--drop, 0px));
+}
+
+/* kleiner Draht nach oben zur Leitung */
+.bulb .wire{
+  position:absolute;
+  top:-18px;
+  width:2px;
+  height:18px;
+  background:#2a2a2a;
+  opacity:.9;
 }
 
 /* Sockel */
-.bulb::before{
-  content:"";
-  width:10px;
+.bulb .base{
+  width:12px;
   height:10px;
   background:#444;
   border-radius:2px;
   margin-top:-6px;
   z-index:2;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.4);
 }
 
-/* Glas */
-.bulb::after{
+/* Glas-Birne */
+.bulb .glass{
+  position:absolute;
+  top:10px;
+  width:24px;
+  height:34px;
+  border-radius:50% 50% 48% 48%;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow:
+    inset 0 -10px 16px rgba(0,0,0,.55),
+    inset 0 6px 10px rgba(255,255,255,.08);
+  overflow:hidden;
+  transition: 160ms;
+}
+
+/* kleiner Glanz */
+.bulb .glass:before{
   content:"";
   position:absolute;
-  top:8px;
-  width:22px;
-  height:30px;
-  background:#2a2a2a;
-  border-radius:50% 50% 45% 45%;
-  box-shadow: inset 0 -6px 10px rgba(0,0,0,.6);
-  transition:.2s;
+  left:20%;
+  top:18%;
+  width:28%;
+  height:40%;
+  border-radius:999px;
+  background: rgba(255,255,255,0.18);
+  transform: rotate(-12deg);
 }
 
-/* warmes Leuchten */
-.bulb.on::after{
-  background:var(--warm);
+/* AUS: leicht farbiger "Kunststoff" */
+.bulb[data-color="red"]   .glass{ background: rgba(255, 60, 60, 0.16); }
+.bulb[data-color="green"] .glass{ background: rgba( 60,255,140, 0.14); }
+.bulb[data-color="blue"]  .glass{ background: rgba( 70,160,255, 0.14); }
+.bulb[data-color="yellow"].glass{ background: rgba(255,220, 80, 0.14); }
+
+/* AN: richtiges Leuchten in Lampenfarbe */
+.bulb.on .glass{
+  border-color: rgba(255,255,255,0.22);
   box-shadow:
-    0 0 12px var(--warm),
-    0 0 30px var(--warm),
-    0 0 60px rgba(255,230,150,.6);
+    0 0 10px var(--glow),
+    0 0 26px var(--glow),
+    0 0 58px color-mix(in srgb, var(--glow) 55%, transparent),
+    inset 0 -10px 16px rgba(0,0,0,.35),
+    inset 0 6px 10px rgba(255,255,255,.10);
 }
 
-/* leichte Unordnung wie echte Kette */
-.bulb:nth-child(odd){ transform:translateY(2px) }
-.bulb:nth-child(3n){ transform:translateY(4px) }
+/* Farbe als CSS-Variable je Lampe */
+.bulb[data-color="red"]    { --glow: rgb(255, 55, 55); }
+.bulb[data-color="green"]  { --glow: rgb( 60,255,140); }
+.bulb[data-color="blue"]   { --glow: rgb( 80,170,255); }
+.bulb[data-color="yellow"] { --glow: rgb(255,220, 80); }
+
+.bulb.on[data-color="red"]    .glass{ background: rgba(255, 70, 70, 0.92); }
+.bulb.on[data-color="green"]  .glass{ background: rgba( 70,255,150, 0.88); }
+.bulb.on[data-color="blue"]   .glass{ background: rgba( 90,185,255, 0.88); }
+.bulb.on[data-color="yellow"] .glass{ background: rgba(255,230, 95, 0.90); }
 
 /* ---------- INPUTS ---------- */
 
 input{
   width:100%;
   padding:14px;
-  background:#111;
+  background:#0f0f0f;
   border:1px solid #333;
   border-radius:12px;
   color:white;
@@ -150,26 +207,32 @@ button{
   cursor:pointer;
 }
 
+button:disabled{opacity:.5}
+
 .status{
   font-size:13px;
   margin:10px 0;
-  opacity:.8;
+  color:var(--muted);
 }
+
+.ok{ color:#21d07a; }
+.err{ color:#ff4b57; }
+
+/* ---------- HISTORY ---------- */
 
 .history{
   margin-top:14px;
   font-size:13px;
-  max-height:120px;
+  max-height:140px;
   overflow:auto;
-  background:#111;
-  border-radius:10px;
+  background:#0f0f0f;
+  border-radius:12px;
   padding:10px;
 }
 
-.msg{padding:2px 0}
+.msg{padding:3px 0;border-bottom:1px solid #222;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
 
 /* ---------- INTRO ---------- */
-
 .intro{
   position:fixed;
   inset:0;
@@ -180,12 +243,10 @@ button{
   z-index:999;
   transition:opacity .7s;
 }
-
 .intro.hidden{opacity:0;pointer-events:none}
-
 .intro-title{
   font-family:'Creepster';
-  font-size:90px;
+  font-size: clamp(56px, 9vw, 92px);
   color:var(--red);
   text-shadow:0 0 30px var(--red);
 }
@@ -199,83 +260,188 @@ button{
 </div>
 
 <div class="card">
+  <h1>Joyce Wall</h1>
 
-<h1>Joyce Wall</h1>
+  <div class="strand-wrap">
+    <div class="cable" aria-hidden="true">
+      <svg viewBox="0 0 1000 120" preserveAspectRatio="none">
+        <path class="shadow" d="M0,40 C120,90 240,10 360,55 C480,100 620,20 740,60 C860,95 940,30 1000,58"></path>
+        <path d="M0,40 C120,90 240,10 360,55 C480,100 620,20 740,60 C860,95 940,30 1000,58"></path>
+      </svg>
+    </div>
 
-<div class="strand-wrap">
-  <div class="strand" id="strand"></div>
-</div>
+    <div class="strand" id="strand"></div>
+  </div>
 
-<input id="msg" placeholder="HELLO WORLD" maxlength="26"/>
-<button id="send">Send Message</button>
-<div id="status" class="status"></div>
-<div id="history" class="history"></div>
+  <input id="msg" placeholder="HELLO WORLD" maxlength="26" />
+  <button id="send">Send Message</button>
 
+  <div id="status" class="status">Bereit…</div>
+  <div id="history" class="history"></div>
 </div>
 
 <script>
-const WEBHOOK_URL="https://eoipntgq6ax4882.m.pipedream.net/";
-const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const strand=document.getElementById("strand");
-const msg=document.getElementById("msg");
-const historyBox=document.getElementById("history");
-const status=document.getElementById("status");
+/* ---------------- CONFIG ---------------- */
+const WEBHOOK_URL = "https://eoipntgq6ax4882.m.pipedream.net/";
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const MAX_LEN = 26;
 
-const bulbs={},history=[];
+// Farben wie Weihnachtskette: wiederholt rot/grün/blau/gelb
+const colorCycle = ["red","green","blue","yellow"];
+/* ---------------------------------------- */
 
-window.onload=()=>setTimeout(()=>intro.classList.add("hidden"),1800);
-
-/* build bulbs */
-letters.forEach(l=>{
-  const d=document.createElement("div");
-  d.className="bulb";
-  strand.appendChild(d);
-  bulbs[l]=d;
+const intro = document.getElementById("intro");
+window.addEventListener("load", () => {
+  setTimeout(() => intro.classList.add("hidden"), 1800);
 });
 
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const clean=t=>t.toUpperCase().replace(/[^A-Z ]/g,"").slice(0,26);
+const strand = document.getElementById("strand");
+const msg = document.getElementById("msg");
+const btn = document.getElementById("send");
+const status = document.getElementById("status");
+const historyBox = document.getElementById("history");
 
-function off(){Object.values(bulbs).forEach(b=>b.classList.remove("on"))}
-function on(l){bulbs[l]?.classList.add("on")}
+const bulbs = {};
+const history = [];
 
+/* Build bulbs with sag (durchhängend) */
+letters.forEach((l, i) => {
+  const b = document.createElement("div");
+  b.className = "bulb";
+
+  // Farbe zuweisen
+  const col = colorCycle[i % colorCycle.length];
+  b.dataset.color = col;
+
+  // Durchhang simulieren: Sinus über 26 Lampen
+  // -> in 2 Reihen à 13, pro Reihe separater Durchhang
+  const row = Math.floor(i / 13);           // 0 oder 1
+  const colIdx = i % 13;                    // 0..12
+  const t = colIdx / 12;                    // 0..1
+  const sag = Math.sin(t * Math.PI) * 10;   // 0..10..0 px
+  const rowOffset = row === 0 ? 0 : 6;      // zweite Reihe etwas tiefer
+  b.style.setProperty("--drop", `${sag + rowOffset}px`);
+
+  // Wire/Base/Glass
+  const wire = document.createElement("div");
+  wire.className = "wire";
+  const base = document.createElement("div");
+  base.className = "base";
+  const glass = document.createElement("div");
+  glass.className = "glass";
+
+  b.appendChild(wire);
+  b.appendChild(base);
+  b.appendChild(glass);
+
+  strand.appendChild(b);
+  bulbs[l] = b;
+});
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function clean(t){
+  return (t||"")
+    .toUpperCase()
+    .replace(/Ä/g,"A")
+    .replace(/Ö/g,"O")
+    .replace(/Ü/g,"U")
+    .replace(/ß/g,"SS")
+    .replace(/[^A-Z ]/g,"")
+    .trimStart()
+    .slice(0, MAX_LEN);
+}
+
+function allOff(){
+  Object.values(bulbs).forEach(b => b.classList.remove("on"));
+}
+function allOn(){
+  Object.values(bulbs).forEach(b => b.classList.add("on"));
+}
+function on(l){ bulbs[l]?.classList.add("on"); }
+function off(l){ bulbs[l]?.classList.remove("on"); }
+
+/* ESP gleiche Animation */
 async function animate(text){
-  off();
+  allOff();
+
+  // Anfang: alle blinken
   for(let i=0;i<2;i++){
-    Object.values(bulbs).forEach(b=>b.classList.add("on"));
+    allOn();
     await sleep(200);
-    off();
+    allOff();
     await sleep(200);
   }
 
   for(const c of text){
-    if(c===" "){await sleep(750);continue;}
+    if(c === " "){ await sleep(750); continue; }
     on(c);
     await sleep(500);
-    off();
+    off(c);
     await sleep(250);
+  }
+
+  // Ende: alle blinken
+  await sleep(250);
+  for(let i=0;i<4;i++){
+    allOn();
+    await sleep(100);
+    allOff();
+    await sleep(100);
   }
 }
 
+/* History */
 function addHistory(t){
   history.unshift(t);
-  historyBox.innerHTML=history.slice(0,10).map(x=>`<div class="msg">• ${x}</div>`).join("");
+  if(history.length > 10) history.pop();
+  historyBox.innerHTML = history.map(x=>`<div class="msg">• ${x}</div>`).join("");
 }
 
-msg.oninput=()=>status.textContent=`${msg.value.length}/26 Zeichen`;
+/* Live input preview */
+msg.addEventListener("input", () => {
+  msg.value = clean(msg.value);
+  status.textContent = `${msg.value.length}/${MAX_LEN} Zeichen (nur A–Z & Leerzeichen)`;
+});
 
+/* Send */
 async function send(){
-  const text=clean(msg.value);
-  if(!text)return;
+  const text = clean(msg.value);
+  if(!text){
+    status.textContent = "Bitte Text eingeben.";
+    return;
+  }
 
-  animate(text);
-  await fetch(WEBHOOK_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text})});
-  addHistory(text);
-  msg.value="";
+  btn.disabled = true;
+  status.textContent = "Sende…";
+
+  // Animation sofort (fühlt sich schnell an)
+  animate(text).catch(()=>{});
+
+  try{
+    const r = await fetch(WEBHOOK_URL,{
+      method:"POST",
+      headers:{"content-type":"application/json"},
+      body: JSON.stringify({ text })
+    });
+
+    if(r.ok){
+      status.textContent = "OK ✅";
+      addHistory(text);
+      msg.value = "";
+      msg.focus();
+    } else {
+      status.textContent = "Fehler ❌";
+    }
+  } catch(e){
+    status.textContent = "Netzwerkfehler ❌";
+  } finally {
+    btn.disabled = false;
+  }
 }
 
-send.onclick=send;
-msg.addEventListener("keydown",e=>e.key==="Enter"&&send());
+btn.addEventListener("click", send);
+msg.addEventListener("keydown", e => { if(e.key === "Enter") send(); });
 </script>
 
 </body>
