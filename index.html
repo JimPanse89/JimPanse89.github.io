@@ -10,13 +10,9 @@
 
 <style>
 :root{
-  --bg:#0b0b12;
-  --panel:rgba(255,255,255,.06);
-  --text:#eaeaf5;
-  --muted:#9fa3c7;
   --red:#ff1b2d;
-  --ok:#21d07a;
-  --err:#ff4b57;
+  --warm:#ffe9a6;
+  --bg:#0b0b12;
 }
 
 body{
@@ -25,155 +21,179 @@ body{
   background:
     radial-gradient(circle at 20% 0%, rgba(255,27,45,.25), transparent 60%),
     #0b0b12;
-  color:var(--text);
   display:flex;
   justify-content:center;
   align-items:center;
   min-height:100vh;
+  color:white;
   padding:20px;
 }
 
-/* ---------------- CARD ---------------- */
+/* ---------- CARD ---------- */
 
 .card{
-  width:min(820px,100%);
-  background:var(--panel);
+  width:min(880px,100%);
+  background:rgba(255,255,255,.06);
   padding:28px;
   border-radius:18px;
   box-shadow:0 20px 60px rgba(0,0,0,.6);
 }
 
-/* Stranger Things Title */
+/* ---------- TITLE ---------- */
+
 h1{
-  font-family:'Creepster', cursive;
+  font-family:'Creepster';
   text-align:center;
-  font-size:56px;
-  margin:0 0 22px 0;
+  font-size:60px;
+  margin:0 0 20px;
   color:var(--red);
   text-shadow:
-    0 0 8px rgba(255,27,45,.9),
-    0 0 24px rgba(255,27,45,.7),
-    0 0 48px rgba(255,27,45,.4);
+    0 0 10px rgba(255,27,45,.9),
+    0 0 35px rgba(255,27,45,.6),
+    0 0 70px rgba(255,27,45,.4);
 }
 
-/* ---------------- STRAND ---------------- */
+/* ---------- STRAND ---------- */
 
 .strand-wrap{
-  background:#111;
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:18px;
+  position:relative;
+  padding-top:24px;
+  margin-bottom:20px;
+}
+
+/* Kabel */
+.strand-wrap::before{
+  content:"";
+  position:absolute;
+  top:14px;
+  left:0;
+  right:0;
+  height:4px;
+  background:#222;
+  border-radius:4px;
 }
 
 .strand{
   display:grid;
   grid-template-columns:repeat(13,1fr);
-  gap:8px;
+  gap:10px;
 }
 
+/* echte Birne */
 .bulb{
-  aspect-ratio:1/1;
-  border-radius:50%;
-  background:#222;
-  border:1px solid #333;
-  transition:.15s;
+  position:relative;
+  width:100%;
+  height:48px;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
 }
 
-.bulb.on{
-  background:white;
+/* Sockel */
+.bulb::before{
+  content:"";
+  width:10px;
+  height:10px;
+  background:#444;
+  border-radius:2px;
+  margin-top:-6px;
+  z-index:2;
+}
+
+/* Glas */
+.bulb::after{
+  content:"";
+  position:absolute;
+  top:8px;
+  width:22px;
+  height:30px;
+  background:#2a2a2a;
+  border-radius:50% 50% 45% 45%;
+  box-shadow: inset 0 -6px 10px rgba(0,0,0,.6);
+  transition:.2s;
+}
+
+/* warmes Leuchten */
+.bulb.on::after{
+  background:var(--warm);
   box-shadow:
-    0 0 10px white,
-    0 0 25px white,
-    0 0 40px rgba(255,255,255,.5);
+    0 0 12px var(--warm),
+    0 0 30px var(--warm),
+    0 0 60px rgba(255,230,150,.6);
 }
 
-/* ---------------- INPUTS ---------------- */
+/* leichte Unordnung wie echte Kette */
+.bulb:nth-child(odd){ transform:translateY(2px) }
+.bulb:nth-child(3n){ transform:translateY(4px) }
+
+/* ---------- INPUTS ---------- */
 
 input{
   width:100%;
   padding:14px;
-  font-size:18px;
-  border-radius:12px;
-  border:1px solid #333;
   background:#111;
+  border:1px solid #333;
+  border-radius:12px;
   color:white;
+  font-size:18px;
   margin-bottom:10px;
 }
 
 button{
   width:100%;
   padding:14px;
-  font-weight:bold;
   border:none;
   border-radius:12px;
   background:var(--red);
   color:white;
+  font-weight:bold;
   cursor:pointer;
-  margin-bottom:10px;
 }
-
-button:disabled{opacity:.5}
 
 .status{
   font-size:13px;
-  margin-bottom:14px;
-  color:var(--muted);
+  margin:10px 0;
+  opacity:.8;
 }
-.ok{color:var(--ok)}
-.err{color:var(--err)}
-
-/* ---------------- HISTORY ---------------- */
 
 .history{
-  background:#111;
-  border-radius:12px;
-  padding:10px;
+  margin-top:14px;
   font-size:13px;
-  max-height:150px;
+  max-height:120px;
   overflow:auto;
+  background:#111;
+  border-radius:10px;
+  padding:10px;
 }
 
-.msg{padding:3px 0;border-bottom:1px solid #222}
+.msg{padding:2px 0}
 
-/* ---------------- INTRO ---------------- */
+/* ---------- INTRO ---------- */
 
 .intro{
   position:fixed;
   inset:0;
-  z-index:9999;
+  background:black;
   display:flex;
   justify-content:center;
   align-items:center;
-  background:#000;
+  z-index:999;
   transition:opacity .7s;
 }
 
-.intro.hidden{
-  opacity:0;
-  pointer-events:none;
-}
+.intro.hidden{opacity:0;pointer-events:none}
 
 .intro-title{
   font-family:'Creepster';
   font-size:90px;
-  color:#ff1b2d;
-  text-shadow:
-    0 0 12px rgba(255,27,45,.9),
-    0 0 30px rgba(255,27,45,.6),
-    0 0 60px rgba(255,27,45,.4);
-  animation:flicker 2s infinite;
-}
-
-@keyframes flicker{
-  0%,100%{opacity:1}
-  50%{opacity:.85}
+  color:var(--red);
+  text-shadow:0 0 30px var(--red);
 }
 </style>
 </head>
 
 <body>
 
-<!-- INTRO -->
 <div id="intro" class="intro">
   <div class="intro-title">JOYCE WALL</div>
 </div>
@@ -188,67 +208,43 @@ button:disabled{opacity:.5}
 
 <input id="msg" placeholder="HELLO WORLD" maxlength="26"/>
 <button id="send">Send Message</button>
-
-<div id="status" class="status">Bereit…</div>
-
-<div class="history" id="history"></div>
+<div id="status" class="status"></div>
+<div id="history" class="history"></div>
 
 </div>
 
 <script>
-/* CONFIG */
 const WEBHOOK_URL="https://eoipntgq6ax4882.m.pipedream.net/";
 const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const MAX_LEN=26;
-
-/* INTRO */
-window.addEventListener("load",()=>{
-  setTimeout(()=>document.getElementById("intro").classList.add("hidden"),1800);
-});
-
-/* ELEMENTS */
 const strand=document.getElementById("strand");
 const msg=document.getElementById("msg");
-const btn=document.getElementById("send");
-const status=document.getElementById("status");
 const historyBox=document.getElementById("history");
+const status=document.getElementById("status");
 
 const bulbs={},history=[];
 
-/* BUILD BULBS */
+window.onload=()=>setTimeout(()=>intro.classList.add("hidden"),1800);
+
+/* build bulbs */
 letters.forEach(l=>{
-  const b=document.createElement("div");
-  b.className="bulb";
-  strand.appendChild(b);
-  bulbs[l]=b;
+  const d=document.createElement("div");
+  d.className="bulb";
+  strand.appendChild(d);
+  bulbs[l]=d;
 });
 
-/* HELPERS */
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const clean=t=>t.toUpperCase().replace(/[^A-Z ]/g,"").slice(0,26);
 
-function clean(t){
-  return (t||"")
-    .toUpperCase()
-    .replace(/[Ä]/g,"A")
-    .replace(/[Ö]/g,"O")
-    .replace(/[Ü]/g,"U")
-    .replace(/[ß]/g,"SS")
-    .replace(/[^A-Z ]/g,"")
-    .slice(0,MAX_LEN);
-}
-
-function allOff(){Object.values(bulbs).forEach(b=>b.classList.remove("on"))}
+function off(){Object.values(bulbs).forEach(b=>b.classList.remove("on"))}
 function on(l){bulbs[l]?.classList.add("on")}
-function off(l){bulbs[l]?.classList.remove("on")}
 
-/* ANIMATION (wie ESP32) */
 async function animate(text){
-  allOff();
-
+  off();
   for(let i=0;i<2;i++){
     Object.values(bulbs).forEach(b=>b.classList.add("on"));
     await sleep(200);
-    allOff();
+    off();
     await sleep(200);
   }
 
@@ -256,62 +252,30 @@ async function animate(text){
     if(c===" "){await sleep(750);continue;}
     on(c);
     await sleep(500);
-    off(c);
+    off();
     await sleep(250);
   }
-
-  for(let i=0;i<4;i++){
-    Object.values(bulbs).forEach(b=>b.classList.add("on"));
-    await sleep(100);
-    allOff();
-    await sleep(100);
-  }
 }
 
-/* HISTORY */
 function addHistory(t){
   history.unshift(t);
-  if(history.length>10)history.pop();
-  historyBox.innerHTML=history.map(x=>`<div class="msg">• ${x}</div>`).join("");
+  historyBox.innerHTML=history.slice(0,10).map(x=>`<div class="msg">• ${x}</div>`).join("");
 }
 
-/* LIVE FILTER */
-msg.addEventListener("input",()=>{
-  msg.value=clean(msg.value);
-  status.textContent=`${msg.value.length}/${MAX_LEN} Zeichen`;
-});
+msg.oninput=()=>status.textContent=`${msg.value.length}/26 Zeichen`;
 
-/* SEND */
 async function send(){
   const text=clean(msg.value);
   if(!text)return;
 
-  btn.disabled=true;
-  status.textContent="Sende…";
-
   animate(text);
-
-  try{
-    await fetch(WEBHOOK_URL,{
-      method:"POST",
-      headers:{"content-type":"application/json"},
-      body:JSON.stringify({text})
-    });
-
-    status.textContent="OK ✅";
-    status.className="status ok";
-    addHistory(text);
-  }catch{
-    status.textContent="Fehler ❌";
-    status.className="status err";
-  }
-
-  btn.disabled=false;
+  await fetch(WEBHOOK_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text})});
+  addHistory(text);
   msg.value="";
 }
 
-btn.onclick=send;
-msg.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+send.onclick=send;
+msg.addEventListener("keydown",e=>e.key==="Enter"&&send());
 </script>
 
 </body>
