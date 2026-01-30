@@ -132,69 +132,95 @@
   </div>
 
   <script>
-    const WEBHOOK_URL = "https://eoipntgq6ax4882.m.pipedream.net/";
+const WEBHOOK_URL = "https://eoipntgq6ax4882.m.pipedream.net/";
 
-    const msg = document.getElementById("msg");
-    const btn = document.getElementById("send");
-    const status = document.getElementById("status");
-    const historyList = document.getElementById("historyList");
+const msg = document.getElementById("msg");
+const btn = document.getElementById("send");
+const status = document.getElementById("status");
+const historyList = document.getElementById("historyList");
 
-    const history = [];
+const history = [];
+const MAX_LEN = 26; // passt schön zur 26er Lichterkette
 
-    function sanitize(t){
-      return (t||"")
-        .toUpperCase()
-        .replace(/[^A-Z0-9 .,!?]/g,"")
-        .trim()
-        .slice(0,60);
-    }
+/* --------------------------
+   🔥 VALIDIERUNG wie ESP32
+   nur A-Z + SPACE
+--------------------------- */
 
-    function addHistory(text){
-      history.unshift(text);
-      if(history.length > 10) history.pop();
+function normalizeInput(text){
+  return text
+    .toUpperCase()
+    .replace(/[Ä]/g,"A")
+    .replace(/[Ö]/g,"O")
+    .replace(/[Ü]/g,"U")
+    .replace(/[ß]/g,"SS")
+    .replace(/[^A-Z ]/g,"")   // ALLES andere raus
+    .slice(0, MAX_LEN);
+}
 
-      historyList.innerHTML = history
-        .map(t => `<div class="msg">• ${t}</div>`)
-        .join("");
-    }
+/* Live während tippen filtern */
+msg.addEventListener("input", () => {
+  const cleaned = normalizeInput(msg.value);
 
-    async function send(){
-      const text = sanitize(msg.value);
-      if(!text) return;
+  if(cleaned !== msg.value){
+    status.textContent = "Nur A–Z erlaubt (keine Zahlen/Sonderzeichen)";
+    status.className = "status";
+  } else {
+    status.textContent = `Zeichen: ${cleaned.length}/${MAX_LEN}`;
+    status.className = "status";
+  }
 
-      btn.disabled=true;
-      status.textContent="Sende...";
+  msg.value = cleaned;
+});
 
-      try{
-        const r = await fetch(WEBHOOK_URL,{
-          method:"POST",
-          headers:{ "content-type":"application/json" },
-          body: JSON.stringify({ text })
-        });
 
-        if(r.ok){
-          status.textContent="OK ✅";
-          status.className="status ok";
-          addHistory(text);
-        } else {
-          status.textContent="Fehler ❌";
-          status.className="status err";
-        }
-      }
-      catch{
-        status.textContent="Netzwerkfehler ❌";
-        status.className="status err";
-      }
+function addHistory(text){
+  history.unshift(text);
+  if(history.length > 10) history.pop();
 
-      btn.disabled=false;
-      msg.value="";
-      msg.focus();
-    }
+  historyList.innerHTML = history
+    .map(t => `<div class="msg">• ${t}</div>`)
+    .join("");
+}
 
-    btn.onclick = send;
-    msg.addEventListener("keydown", e=>{
-      if(e.key==="Enter") send();
+async function send(){
+  const text = normalizeInput(msg.value);
+  if(!text) return;
+
+  btn.disabled=true;
+  status.textContent="Sende...";
+
+  try{
+    const r = await fetch(WEBHOOK_URL,{
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body: JSON.stringify({ text })
     });
-  </script>
+
+    if(r.ok){
+      status.textContent="OK ✅";
+      status.className="status ok";
+      addHistory(text);
+    } else {
+      status.textContent="Fehler ❌";
+      status.className="status err";
+    }
+  }
+  catch{
+    status.textContent="Netzwerkfehler ❌";
+    status.className="status err";
+  }
+
+  btn.disabled=false;
+  msg.value="";
+  msg.focus();
+}
+
+btn.onclick = send;
+msg.addEventListener("keydown", e=>{
+  if(e.key==="Enter") send();
+});
+</script>
+
 </body>
 </html>
