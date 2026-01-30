@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+<title>Joyce Wall Messenger</title>
+
+<style>
+:root{
+  --red:#ff1b2d;
+  --panel:rgba(255,255,255,.06);
+  --muted:#9fa3c7;
+}
+
+body{
+  margin:0;
+  font-family:system-ui;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,27,45,.18), transparent 60%),
+    #0b0b12;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  color:white;
+  padding:20px;
+}
+
+/* Upside-Down Particles Layer */
+#particles{
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.82;
+  mix-blend-mode: screen;
+}
+
+/* Subtiles Upside-Down Flackern im Hintergrund */
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: 1;                 /* über Partikeln, unter Card */
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,27,45,0.09), transparent 60%),
+    radial-gradient(circle at 20% 10%, rgba(255,255,255,0.03), transparent 55%),
+    radial-gradient(circle at 80% 20%, rgba(255,27,45,0.05), transparent 60%);
+  opacity: 0.50;
+  animation: udFlicker 6.2s infinite steps(1, end);
+}
+
+@keyframes udFlicker{
+  0%   { opacity: .44; filter: brightness(1); }
+  6%   { opacity: .58; filter: brightness(1.02); }
+  9%   { opacity: .36; filter: brightness(.99); }
+  14%  { opacity: .60; filter: brightness(1.03); }
+  18%  { opacity: .42; filter: brightness(1); }
+  43%  { opacity: .55; filter: brightness(1.01); }
+  46%  { opacity: .35; filter: brightness(.99); }
+  63%  { opacity: .61; filter: brightness(1.03); }
+  79%  { opacity: .46; filter: brightness(1); }
+  100% { opacity: .44; filter: brightness(1); }
+}
+
+/* Content above particles */
+.card{ position: relative; z-index: 2; }
+
+.card{
+  width:min(980px,100%);
+  background:var(--panel);
+  padding:28px;
+  border-radius:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.65);
+  backdrop-filter: blur(6px);
+}
+
+h1{
+  font-family:'Creepster';
+  text-align:center;
+  font-size:62px;
+  margin:0 0 18px;
+  color:var(--red);
+  text-shadow:
+    0 0 10px rgba(255,27,45,.9),
+    0 0 35px rgba(255,27,45,.6),
+    0 0 70px rgba(255,27,45,.4);
+}
+
+/* ---------------- STRAND ---------------- */
+
+.strand-wrap{
+  position:relative;
+  padding:18px 10px 10px;
+  margin: 6px 0 18px;
+  border-radius:14px;
+  background:#111;
+  overflow:hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Kabel Layer */
+.cable{
+  position:absolute;
+  left:-20px;
+  right:-20px;
+  height:90px;
+  pointer-events:none;
+  opacity:.95;
+}
+.cable svg{ width:100%; height:100%; display:block; }
+.cable path{
+  stroke:#2b2b2b;
+  stroke-width:5;
+  fill:none;
+  stroke-linecap:round;
+}
+.cable path.shadow{
+  stroke:#090909;
+  stroke-width:10;
+  opacity:.55;
+  filter: blur(0.2px);
+}
+.cable.top{ top:14px; }
+.cable.bottom{ top:112px; }
+
+/* Verbindungskabel links zwischen den Reihen */
+.bridge{
+  position:absolute;
+  left:14px;
+  top:52px;
+  width:10px;
+  height:92px;
+  pointer-events:none;
+  opacity:.95;
+}
+.bridge:before{
+  content:"";
+  position:absolute;
+  left:3px;
+  top:0;
+  width:5px;
+  height:100%;
+  background:#2b2b2b;
+  border-radius:6px;
+  box-shadow: 0 0 0 3px rgba(9,9,9,0.45);
+}
+
+/* Grid für 26 Lampen (2 Reihen à 13) */
+.strand{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(13, 1fr);
+  gap: 12px 10px;
+  padding-top: 34px;
+  padding-bottom: 10px;
+}
+
+/* Lampen-Container */
+.bulb{
+  position:relative;
+  width:100%;
+  height:78px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  transform: translateY(var(--drop, 0px));
+}
+
+/* Draht nach oben zur Leitung */
+.bulb .wire{
+  position:absolute;
+  top:-18px;
+  width:2px;
+  height:18px;
+  background:#2b2b2b;
+  opacity:.95;
+}
+
+/* Sockel */
+.bulb .base{
+  width:14px;
+  height:10px;
+  background:#4a4a4a;
+  border-radius:2px;
+  margin-top:-6px;
+  z-index:3;
+  box-shadow:
+    inset 0 -2px 0 rgba(0,0,0,.45),
+    0 0 0 1px rgba(0,0,0,.35);
+}
+
+/* Konische Weihnachtsbirne */
+.bulb .glass{
+  position:absolute;
+  top:10px;
+  width:26px;
+  height:40px;
+  clip-path: polygon(
+    38% 0%,
+    62% 0%,
+    78% 18%,
+    88% 46%,
+    80% 78%,
+    60% 100%,
+    40% 100%,
+    20% 78%,
+    12% 46%,
+    22% 18%
+  );
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow:
+    inset 0 -12px 16px rgba(0,0,0,.58),
+    inset 0 10px 12px rgba(255,255,255,.08);
+  transition: 140ms;
+}
+
+/* Glanz */
+.bulb .glass:before{
+  content:"";
+  position:absolute;
+  left:30%;
+  top:14%;
+  width:20%;
+  height:45%;
+  border-radius:999px;
+  background: rgba(255,255,255,0.22);
+  transform: rotate(-12deg);
+  filter: blur(0.2px);
+}
+
+/* Farbe pro Lampe */
+.bulb[data-color="red"]    { --glow: rgb(255, 55, 55); }
+.bulb[data-color="green"]  { --glow: rgb( 60,255,140); }
+.bulb[data-color="blue"]   { --glow: rgb( 80,170,255); }
+.bulb[data-color="yellow"] { --glow: rgb(255,220, 80); }
+
+/* AUS: leicht farbiger Kunststoff */
+.bulb[data-color="red"]   .glass{ background: rgba(255, 70, 70, 0.16); }
+.bulb[data-color="green"] .glass{ background: rgba( 70,255,160, 0.14); }
+.bulb[data-color="blue"]  .glass{ background: rgba( 90,185,255, 0.14); }
+.bulb[data-color="yellow"].glass{ background: rgba(255,230, 95, 0.14); }
+
+/* ✅ Idle-Glow Layer: garantiert sichtbares Flackern im AUS-Zustand */
+.bulb .glass::after{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 55%, var(--glow) 0%, transparent 60%);
+  opacity: 0.06;                 /* Grundglimmen */
+  filter: blur(6px);
+  pointer-events:none;
+  transition: opacity 120ms;
+}
+
+/* ✅ Idle-Flackern (sichtbar) */
+.bulb .glass{
+  animation: bulbIdleFlicker var(--flickDur, 5.8s) infinite;
+  animation-delay: var(--flickDelay, 0s);
+  will-change: filter;
+}
+.bulb .glass::after{
+  animation: bulbIdleGlow var(--flickDur, 5.8s) infinite;
+  animation-delay: var(--flickDelay, 0s);
+  will-change: opacity;
+}
+
+@keyframes bulbIdleFlicker{
+  0%   { filter: brightness(0.92); }
+  8%   { filter: brightness(1.02); }
+  11%  { filter: brightness(0.86); }
+  17%  { filter: brightness(1.00); }
+  54%  { filter: brightness(0.92); }
+  61%  { filter: brightness(1.03); }
+  66%  { filter: brightness(0.88); }
+  100% { filter: brightness(0.92); }
+}
+
+@keyframes bulbIdleGlow{
+  0%   { opacity: 0.05; }
+  8%   { opacity: 0.18; }
+  11%  { opacity: 0.04; }
+  17%  { opacity: 0.15; }
+  54%  { opacity: 0.06; }
+  61%  { opacity: 0.20; }
+  66%  { opacity: 0.05; }
+  100% { opacity: 0.05; }
+}
+
+/* AN: kräftig leuchtend in Lampenfarbe + eigenes Flackern */
+.bulb.on .glass{
+  animation: bulbOnFlicker var(--onFlickDur, 2.6s) infinite;
+  animation-delay: var(--onFlickDelay, 0s);
+  filter: brightness(1.05);
+  border-color: rgba(255,255,255,0.22);
+  box-shadow:
+    0 0 10px var(--glow),
+    0 0 26px var(--glow),
+    0 0 62px rgba(255,255,255,0.10),
+    inset 0 -10px 16px rgba(0,0,0,.36),
+    inset 0 10px 12px rgba(255,255,255,.10);
+}
+
+/* Wenn AN: Idle-Glow weg, stattdessen stärkerer Glow */
+.bulb.on .glass::after{
+  animation: none;
+  opacity: 0.28;
+  filter: blur(10px);
+}
+
+@keyframes bulbOnFlicker{
+  0%   { filter: brightness(1.00); }
+  4%   { filter: brightness(1.08); }
+  7%   { filter: brightness(0.96); }
+  12%  { filter: brightness(1.10); }
+  18%  { filter: brightness(0.97); }
+  45%  { filter: brightness(1.08); }
+  50%  { filter: brightness(0.95); }
+  68%  { filter: brightness(1.07); }
+  82%  { filter: brightness(0.98); }
+  100% { filter: brightness(1.00); }
+}
+
+.bulb.on[data-color="red"]    .glass{ background: rgba(255, 75, 75, 0.92); }
+.bulb.on[data-color="green"]  .glass{ background: rgba( 75,255,155, 0.88); }
+.bulb.on[data-color="blue"]   .glass{ background: rgba( 95,190,255, 0.88); }
+.bulb.on[data-color="yellow"] .glass{ background: rgba(255,232,105, 0.90); }
+
+/* ---------- INPUTS ---------- */
+
+input{
+  width:100%;
+  padding:14px;
+  background:#0f0f0f;
+  border:1px solid #333;
+  border-radius:12px;
+  color:white;
+  font-size:18px;
+  margin-bottom:10px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:var(--red);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:disabled{opacity:.5}
+
+.status{
+  font-size:13px;
+  margin:10px 0;
+  color:var(--muted);
+}
+
+.history{
+  margin-top:14px;
+  font-size:13px;
+  max-height:160px;
+  overflow:auto;
+  background:#0f0f0f;
+  border-radius:12px;
+  padding:10px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.msg{
+  padding:4px 0;
+  border-bottom:1px solid #222;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* ---------- INTRO ---------- */
+.intro{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  transition:opacity .7s;
+}
+.intro.hidden{opacity:0;pointer-events:none}
+.intro-title{
+  font-family:'Creepster';
+  font-size: clamp(56px, 9vw, 92px);
+  color:var(--red);
+  text-shadow:0 0 30px var(--red);
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="particles"></canvas>
+
+<div id="intro" class="intro">
+  <div class="intro-title">JOYCE WALL</div>
+</div>
+
+<div class="card">
+  <h1>Joyce Wall</h1>
+
+  <div class="strand-wrap">
+    <div class="cable top" aria-hidden="true">
+      <svg viewBox="0 0 1000 120" preserveAspectRatio="none">
+        <path class="shadow" d="M0,40 C120,95 240,10 360,58 C480,105 620,20 740,64 C860,98 940,30 1000,62"></path>
+        <path d="M0,40 C120,95 240,10 360,58 C480,105 620,20 740,64 C860,98 940,30 1000,62"></path>
+      </svg>
+    </div>
+
+    <div class="bridge" aria-hidden="true"></div>
+
+    <div class="cable bottom" aria-hidden="true">
+      <svg viewBox="0 0 1000 120" preserveAspectRatio="none">
+        <path class="shadow" d="M0,52 C140,110 260,18 380,70 C520,122 650,28 770,74 C900,112 960,40 1000,74"></path>
+        <path d="M0,52 C140,110 260,18 380,70 C520,122 650,28 770,74 C900,112 960,40 1000,74"></path>
+      </svg>
+    </div>
+
+    <div class="strand" id="strand"></div>
+  </div>
+
+  <input id="msg" placeholder="HELLO WORLD" maxlength="26" />
+  <button id="send">Send Message</button>
+
+  <div id="status" class="status">Bereit…</div>
+  <div id="history" class="history"></div>
+</div>
+
+<script>
+/* ---------------- CONFIG ---------------- */
+const WEBHOOK_URL = "https://eoipntgq6ax4882.m.pipedream.net/";
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const MAX_LEN = 26;
+const colorCycle = ["red","green","blue","yellow"];
+/* ---------------------------------------- */
+
+const intro = document.getElementById("intro");
+window.addEventListener("load", () => setTimeout(() => intro.classList.add("hidden"), 1800));
+
+const strand = document.getElementById("strand");
+const msg = document.getElementById("msg");
+const btn = document.getElementById("send");
+const status = document.getElementById("status");
+const historyBox = document.getElementById("history");
+
+const bulbs = {};
+const history = [];
+
+/* Build bulbs with sag + wire length + individualized flicker timing */
+letters.forEach((l, i) => {
+  const b = document.createElement("div");
+  b.className = "bulb";
+  b.dataset.color = colorCycle[i % colorCycle.length];
+
+  // Durchhang pro Reihe (2 Reihen à 13)
+  const row = Math.floor(i / 13);
+  const colIdx = i % 13;
+  const t = colIdx / 12;
+  const sag = Math.sin(t * Math.PI) * 12;
+
+  // zweite Reihe tiefer + deterministisches jitter
+  const baseOffset = row === 0 ? 0 : 10;
+  const jitter = ((i * 17) % 5) - 2; // -2..+2
+  const drop = sag + baseOffset + jitter;
+
+  b.style.setProperty("--drop", `${drop}px`);
+
+  // Jede Lampe flackert minimal anders
+  const flickDur = 5.0 + ((i * 13) % 30) / 10;  // 5.0..8.0s
+  const flickDelay = -((i * 37) % 40) / 10;     // negative delay
+  const onFlickDur = 2.1 + ((i * 9) % 18) / 10; // 2.1..3.9s
+  const onFlickDelay = -((i * 19) % 25) / 10;
+
+  b.style.setProperty("--flickDur", `${flickDur}s`);
+  b.style.setProperty("--flickDelay", `${flickDelay}s`);
+  b.style.setProperty("--onFlickDur", `${onFlickDur}s`);
+  b.style.setProperty("--onFlickDelay", `${onFlickDelay}s`);
+
+  const wire = document.createElement("div");
+  wire.className = "wire";
+  wire.style.height = `${18 + drop}px`;
+  wire.style.top = `${-(18 + drop)}px`;
+
+  const base = document.createElement("div");
+  base.className = "base";
+
+  const glass = document.createElement("div");
+  glass.className = "glass";
+
+  b.appendChild(wire);
+  b.appendChild(base);
+  b.appendChild(glass);
+
+  strand.appendChild(b);
+  bulbs[l] = b;
+});
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function clean(t){
+  return (t||"")
+    .toUpperCase()
+    .replace(/Ä/g,"A").replace(/Ö/g,"O").replace(/Ü/g,"U").replace(/ß/g,"SS")
+    .replace(/[^A-Z ]/g,"")
+    .trimStart()
+    .slice(0, MAX_LEN);
+}
+
+function allOff(){ Object.values(bulbs).forEach(b => b.classList.remove("on")); }
+function allOn(){ Object.values(bulbs).forEach(b => b.classList.add("on")); }
+function on(l){ bulbs[l]?.classList.add("on"); }
+function off(l){ bulbs[l]?.classList.remove("on"); }
+
+/* ESP gleiche Animation */
+async function animate(text){
+  allOff();
+
+  for(let i=0;i<2;i++){
+    allOn(); await sleep(200);
+    allOff(); await sleep(200);
+  }
+
+  for(const c of text){
+    if(c === " "){ await sleep(750); continue; }
+    on(c); await sleep(500);
+    off(c); await sleep(250);
+  }
+
+  await sleep(250);
+  for(let i=0;i<4;i++){
+    allOn(); await sleep(100);
+    allOff(); await sleep(100);
+  }
+}
+
+function addHistory(t){
+  history.unshift(t);
+  if(history.length > 10) history.pop();
+  historyBox.innerHTML = history.map(x => `<div class="msg">• ${x}</div>`).join("");
+}
+
+msg.addEventListener("input", () => {
+  msg.value = clean(msg.value);
+  status.textContent = `${msg.value.length}/${MAX_LEN} Zeichen (nur A–Z & Leerzeichen)`;
+});
+
+async function send(){
+  const text = clean(msg.value);
+  if(!text){
+    status.textContent = "Bitte Text eingeben.";
+    return;
+  }
+
+  btn.disabled = true;
+  status.textContent = "Sende…";
+
+  animate(text).catch(()=>{});
+
+  try{
+    const r = await fetch(WEBHOOK_URL,{
+      method:"POST",
+      headers:{"content-type":"application/json"},
+      body: JSON.stringify({ text })
+    });
+
+    if(r.ok){
+      status.textContent = "OK ✅";
+      addHistory(text);
+      msg.value = "";
+      msg.focus();
+    } else {
+      status.textContent = "Fehler ❌";
+    }
+  } catch(e){
+    status.textContent = "Netzwerkfehler ❌";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+btn.addEventListener("click", send);
+msg.addEventListener("keydown", e => { if(e.key === "Enter") send(); });
+
+/* ---------------- Upside Down Ash Particles (ashy clusters) ---------------- */
+(function(){
+  const c = document.getElementById("particles");
+  const ctx = c.getContext("2d", { alpha: true });
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  let W=0, H=0;
+  let parts = [];
+  let last = performance.now();
+
+  const rand = (a,b) => a + Math.random()*(b-a);
+
+  function makeShape(){
+    const n = Math.floor(rand(4, 9));
+    const pts = [];
+    for(let i=0;i<n;i++){
+      const ang = rand(0, Math.PI*2);
+      const rr = rand(0.0, 1.0) * rand(2.0, 7.0);
+      pts.push({
+        x: Math.cos(ang)*rr,
+        y: Math.sin(ang)*rr*0.8,
+        s: rand(0.7, 2.0)
+      });
+    }
+    return pts;
+  }
+
+  function spawn(clustered=true){
+    const z = Math.random();
+    const size = rand(0.9, 1.6) + z*0.9;
+    const vy = rand(0.14, 0.40) + z*0.55;
+    const vx = rand(-0.20, 0.20);
+    const a  = rand(0.16, 0.32) + z*0.10;
+    const blur = rand(0.4, 1.4) + z*1.2;
+
+    const cx = Math.random()*W;
+    const cy = clustered ? Math.random()*H : -60;
+    const spread = rand(40, 140);
+
+    return {
+      x: cx + rand(-spread, spread),
+      y: cy + rand(-spread*0.5, spread*0.5),
+      vx, vy,
+      drift: rand(0.25, 1.0),
+      ph: rand(0, Math.PI*2),
+      rot: rand(0, Math.PI*2),
+      vr: rand(-0.01, 0.01),
+      a, blur, size,
+      shape: makeShape()
+    };
+  }
+
+  function resize(){
+    W = Math.floor(window.innerWidth);
+    H = Math.floor(window.innerHeight);
+    c.width  = Math.floor(W * DPR);
+    c.height = Math.floor(H * DPR);
+    c.style.width = W + "px";
+    c.style.height = H + "px";
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+
+    const target = Math.max(160, Math.min(420, Math.floor((W*H)/6200)));
+    parts = Array.from({length: target}, () => spawn(true));
+  }
+
+  function drawAsh(p, alphaTw){
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+
+    ctx.globalAlpha = p.a * alphaTw;
+    ctx.fillStyle = "rgb(225, 232, 245)";
+    ctx.shadowColor = "rgba(230,235,245,0.9)";
+    ctx.shadowBlur = p.blur;
+
+    for(const q of p.shape){
+      const r = q.s * p.size;
+      ctx.beginPath();
+      ctx.arc(q.x * p.size, q.y * p.size, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  function loop(now){
+    const dt = Math.min(32, now-last);
+    last = now;
+
+    ctx.clearRect(0,0,W,H);
+
+    const g = ctx.createRadialGradient(W*0.5, H*0.2, 0, W*0.5, H*0.2, Math.max(W,H));
+    g.addColorStop(0, "rgba(255,27,45,0.085)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,W,H);
+
+    for(let i=0;i<parts.length;i++){
+      const p = parts[i];
+
+      p.x += p.vx * (dt/16);
+      p.y += p.vy * (dt/16);
+
+      p.x += Math.sin((now/1000)*p.drift + p.ph) * 0.45;
+      p.y += Math.cos((now/1300)*p.drift + p.ph) * 0.10;
+
+      p.rot += p.vr * (dt/16);
+
+      if(p.y > H + 120) parts[i] = spawn(true);
+      if(p.x < -140) p.x = W + 140;
+      if(p.x > W + 140) p.x = -140;
+
+      const tw = 0.76 + 0.24*Math.sin((now/1000)*p.drift + p.ph);
+      drawAsh(p, tw);
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener("resize", resize, { passive: true });
+  resize();
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
