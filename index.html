@@ -543,8 +543,8 @@ function startIdleFlicker(){
   const bulbEls = Object.values(bulbs);
   const state = bulbEls.map((b, idx) => ({
     b,
-    baseB: 0.96 + (idx % 7) * 0.003,
-    baseG: 0.11 + (idx % 5) * 0.006,
+    baseB: 0.96 + (idx % 7) * 0.030,
+    baseG: 0.80 + (idx % 5) * 0.060,
     targetB: 0.98,
     targetG: 0.14,
     curB: 0.98,
